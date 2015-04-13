@@ -22,7 +22,9 @@ var port = process.env.PORT || 4000;
 //Allow CORS so that backend and frontend could pe put on different servers
 var allowCrossDomain = function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE");
     res.header("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept");
+
     next();
 };
 app.use(allowCrossDomain);
@@ -59,30 +61,33 @@ router.route('/users')
            user.name = req.body.name;
         if(req.body.email !=null && req.body.email !="" && req.body.email != undefined )
           user.email = req.body.email;
-        if(req.body.dateCreated !=null && req.body.dateCreated !="" && req.body.dateCreated != undefined )
+        if(req.body.pendingTasks !=null && req.body.pendingTasks !="" && req.body.pendingTasks != undefined )
           user.pendingTasks = req.body.pendingTasks;
         if(req.body.dateCreated !=null && req.body.dateCreated !="" && req.body.dateCreated != undefined )
           user.dateCreated = req.body.dateCreated;
 
 
         if ( user.name == "" || user.email == "" || user.name == null || user.email == null || user.name == undefined || user.email == undefined)
-                 res.status(500).json({ message: ' Missing the name or email.' });
+                 res.status(404).json({ message: ' Missing the name or email.' });
         else
             User.find( {email: req.body.email },function(err, userWithEmail){
-                if (userWithEmail != "" && userWithEmail != null && userWithEmail != undefined)
-                    res.status(500).json({ message: ' Email already exist!' });
+                if (err)
+                    res.status(500).json({ message: 'Error happened!', data:err });
                 else
-                   user.save(function(err, user) {
-                      if (err)
-                          res.status(500).json({ message: 'Error happened!', data:err });
-                      else
-                        res.status(201).json({ message: 'User created!',data:user });
+                  if (userWithEmail != "" && userWithEmail !=null && userWithEmail != undefined )
+                    res.status(500).json({ message: ' Email already exist!' });
+                  else
+                     user.save(function(err, user) {
+                        if (err)
+                           res.status(500).json({ message: 'Error happened!', data:err });
+                        else
+                           res.status(201).json({ message: 'User created!',data:user });
 
 
-                   });
+                     });
 
 
-        });
+            });
 
 
 
@@ -115,13 +120,13 @@ router.route('/users')
              if (err)
                  res.status(500).json({ message: 'Error happened!', data:err });
              else
-                 if ( user == "")
-                     res.status(404).json({message: 'User not found!!',data:user});
+                 if ( user=="" || user == null || user == undefined)
+                     res.status(200).json({message: 'User not found!!',data:user});
                  else
 
                      res.status(200).json({message: 'User found!!',data:user});
 
-          });
+           });
     })
 
     .options(function(req, res){
@@ -137,10 +142,13 @@ router.route('/users/:user_id')
             if (err)
                 res.status(404).json({ message: 'Error happened!', data:err });
             else
-               if(user=="" || user == null || user == undefined)
-                  res.status(404).json({ message: 'User not found!', data:err });
-               else
-                  res.status(200).json({ message: 'User found!', data:user });
+                if(user=="" || user == null || user == undefined)
+                    res.status(404).json({ message: 'User not found!', data:user });
+                else
+                    res.status(200).json({ message: 'User found!', data:user });
+
+
+
         });
     })
 
@@ -155,22 +163,30 @@ router.route('/users/:user_id')
                       if(user=="" || user == null || user == undefined)
                           res.status(404).json({ message: 'Invalid User', data:err });
                       else
-                         if(req.body.name!=null && req.body.name!="" && req.body.name!= undefined )
-                           user.name = req.body.name;
-                         if(req.body.email!=null && req.body.email!="" && req.body.email!= undefined )
-                           user.email = req.body.email;
-                         if(req.body.pendingTasks!=null && req.body.pendingTasks!="" && req.body.pendingTasks!= undefined )
-                            user.pendingTasks= req.body.pendingTasks;
-                         if(req.body.dateCreated!=null && req.body.dateCreated!="" && req.body.dateCreated!= undefined )
-                            user.dateCreated = req.body.dateCreated;
+                          User.find( {email: req.body.email },function(err, userWithEmail1){
+                              if (err)
+                                  res.status(404).json({ message: 'Error happened!', data:err });
+                              else
+                                //if (userWithEmail1 != "" && userWithEmail1 !=null && userWithEmail1 != undefined )
+                                //     res.status(404).json({ message: ' Email already exist!' });
+                                //else
+                                   if(req.body.name!=null && req.body.name!="" && req.body.name!= undefined )
+                                          user.name = req.body.name;
+                                   if(req.body.email!=null && req.body.email!="" && req.body.email!= undefined )
+                                          user.email = req.body.email;
+                                   if(req.body.pendingTasks!=null && req.body.pendingTasks!="" && req.body.pendingTasks!= undefined )
+                                            user.pendingTasks= req.body.pendingTasks;
+                                   if(req.body.dateCreated!=null && req.body.dateCreated!="" && req.body.dateCreated!= undefined )
+                                             user.dateCreated = req.body.dateCreated;
 
-                         user.save(function(err, user) {
-                             if (err)
-                                 res.status(404).json({message: 'Error happened!', data: err});
-                             else
-                                 res.status(200).json({message: 'User updated!', data: user});
-                         });
-               });
+                                   user.save(function(err,user) {
+                                      if (err)
+                                          res.status(404).json({message: 'Error happened!', data: err});
+                                      else
+                                           res.status(200).json({message: 'User updated!', data:user});
+                                   });
+                          });
+                });
 
 
     })
@@ -186,7 +202,7 @@ router.route('/users/:user_id')
               else
                 User.remove({_id: req.params.user_id}, function(err) {
                     if (err)
-                        res.status(500).json({ message: 'Error happened!', data:err });
+                        res.status(404).json({ message: 'Error happened!', data:err });
                     else
                         res.status(200).json({ message: 'User Successfully deleted' });
                 });
@@ -200,6 +216,8 @@ router.route('/tasks')
         var task = new Task();
         if(req.body.name !=null && req.body.name !="" && req.body.name != undefined )
           task.name = req.body.name;
+        if(req.body.description !=null && req.body.description !="" && req.body.description != undefined )
+            task.description = req.body.description;
         if(req.body.deadline !=null && req.body.deadline !="" && req.body.deadline != undefined )
            task.deadline = req.body.deadline;
         if(req.body.completed !=null && req.body.completed !="" && req.body.completed != undefined )
@@ -215,9 +233,9 @@ router.route('/tasks')
         if (task.name == "" ||  task.deadline == "" || task.name == null ||  task.deadline == null )
                 res.status(500).json({ message: ' Missing the name or deadline.' });
         else
-            task.save(function(err) {
+            task.save(function(err,task) {
                 if (err)
-                    res.status(500).json({ message: 'Error happened!', data:err });
+                    res.status(404).json({ message: 'Error happened!', data:err });
                 else
                         res.status(201).json({ message: 'Task created!',data:task  });
 
@@ -253,8 +271,8 @@ router.route('/tasks')
              if (err)
                  res.status(500).json({ message: 'Error happened!', data:err });
              else
-               if ( task == "")
-                 res.status(404).json({message: 'Task not found!!',data:task});
+               if (task=="" || task == null || task == undefined)
+                 res.status(200).json({message: 'Task not found!!',data:task});
                else
 
                  res.status(200).json({message: 'Task found!!',data:task});
@@ -274,50 +292,56 @@ router.route('/tasks/:task_id')
     .get(function(req, res) {
         Task.findById(req.params.task_id, function(err,task) {
             if (err)
-                res.status(500).json({ message: 'Error happened!', data:err });
+                res.status(404).json({ message: 'Error happened!', data:err });
             else
                if(task=="" || task == null || task == undefined)
-                  res.status(404).json({ message: 'Task not found!', data:err });
+                  res.status(200).json({ message: 'Task not found!', data:task });
                else
-                  res.json({message: 'Task found!!',data:task});
+                  res.status(200).json({message: 'Task found!!',data:task});
         });
     })
 
     .put(function(req, res) {
 
 
-        Task.findById(req.params.user_id, function(err, task) {
+        Task.findById(req.params.task_id, function(err, task) {
             if (err)
                 res.status(404).json({ message: 'Error happened!', data:err });
             else
               if(task=="" || task == null || task == undefined)
-                res.status(404).json({ message: 'Invalid Task', data:err });
+                res.status(404).json({ message: 'Invalid Task' });
               else
                  if(req.body.name!=null && req.body.name!="" && req.body.name!= undefined )
                      task.name = req.body.name;
-                 if(req.body.email!=null && req.body.email!="" && req.body.email!= undefined )
-                     task.email = req.body.email;
-                 if(req.body.pendingTasks!=null && req.body.pendingTasks!="" && req.body.pendingTasks!= undefined )
-                     task.pendingTasks= req.body.pendingTasks;
+                 if(req.body.description!=null && req.body.description!="" && req.body.description!= undefined )
+                        task.description = req.body.description;
+                 if(req.body.deadline!=null && req.body.deadline!="" && req.body.deadline!= undefined )
+                     task.deadline = req.body.deadline;
+                 if(req.body.completed!=null && req.body.completed!="" && req.body.completed!= undefined )
+                     task.completed= req.body.completed;
+                 if(req.body.assignedUser!=null && req.body.assignedUser!="" && req.body.assignedUser!= undefined )
+                    task.assignedUser= req.body.assignedUser;
+                 if(req.body.assignedUserName!=null && req.body.assignedUserName!="" && req.body.assignedUserName!= undefined )
+                     task.assignedUserName= req.body.assignedUserName;
                  if(req.body.dateCreated!=null && req.body.dateCreated!="" && req.body.dateCreated!= undefined )
                      task.dateCreated = req.body.dateCreated;
 
                  task.save(function(err, task) {
                     if (err)
-                       res.status(500).json({message: 'Error happened!', data: err});
+                       res.status(404).json({message: 'Error happened!', data: err});
                     else
-                       res.status(200).json({message: 'User updated!', data: task});
-            });
+                       res.status(200).json({message: 'Task updated!', data: task});
+                 });
         });
     })
 
     .delete(function(req, res) {
-        Task.findById(req.params.user_id, function(err, task1) {
+        Task.findById(req.params.task_id, function(err, task) {
             if (err)
                 res.status(404).json({ message: 'Error happened!', data:err });
             else
-                if(task1=='')
-                    res.status(404).json({ message: 'Invalid Task!', data:err });
+                if(task=="" || task == null || task == undefined)
+                    res.status(404).json({ message: 'Invalid Task!' });
                 else
                     Task.remove({
                         _id: req.params.task_id
