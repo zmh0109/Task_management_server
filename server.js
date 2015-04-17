@@ -161,22 +161,23 @@ router.route('/users/:user_id')
                         res.status(404).json({ message: 'Error happened!', data:err });
                     else
                       if(user=="" || user == null || user == undefined)
-                          res.status(404).json({ message: 'Invalid User', data:err });
+                          res.status(404).json({ message: 'Invalid User' });
                       else
-                          User.find( {email: req.body.email },function(err, userWithEmail1){
+                        //if(req.body.email!=null && req.body.email!="" && req.body.email!= undefined )
+                          User.find( {email: req.body.email},function(err, userWithEmail1){
                               if (err)
-                                  res.status(404).json({ message: 'Error happened!', data:err });
+                                  res.status(500).json({ message: 'Error happened!', data:err });
                               else
                                 //if (userWithEmail1 != "" && userWithEmail1 !=null && userWithEmail1 != undefined )
                                 //     res.status(404).json({ message: ' Email already exist!' });
                                 //else
-                                   if(req.body.name!=null && req.body.name!="" && req.body.name!= undefined )
+                                    if(req.body.name!=null && req.body.name!="" && req.body.name!= undefined )
                                           user.name = req.body.name;
-                                   if(req.body.email!=null && req.body.email!="" && req.body.email!= undefined )
+                                    if(req.body.email!=null && req.body.email!="" && req.body.email!= undefined )
                                           user.email = req.body.email;
-                                   if(req.body.pendingTasks!=null && req.body.pendingTasks!="" && req.body.pendingTasks!= undefined )
+                                    if(req.body.pendingTasks!=null && req.body.pendingTasks!="" && req.body.pendingTasks!= undefined )
                                             user.pendingTasks= req.body.pendingTasks;
-                                   if(req.body.dateCreated!=null && req.body.dateCreated!="" && req.body.dateCreated!= undefined )
+                                    if(req.body.dateCreated!=null && req.body.dateCreated!="" && req.body.dateCreated!= undefined )
                                              user.dateCreated = req.body.dateCreated;
 
                                    user.save(function(err,user) {
@@ -186,6 +187,22 @@ router.route('/users/:user_id')
                                            res.status(200).json({message: 'User updated!', data:user});
                                    });
                           });
+                        //else
+                        //   if(req.body.name!=null && req.body.name!="" && req.body.name!= undefined )
+                        //      user.name = req.body.name;
+                        //   if(req.body.email!=null && req.body.email!="" && req.body.email!= undefined )
+                        //      user.email = req.body.email;
+                        //   if(req.body.pendingTasks!=null && req.body.pendingTasks!="" && req.body.pendingTasks!= undefined )
+                        //          user.pendingTasks= req.body.pendingTasks;
+                        //   if(req.body.dateCreated!=null && req.body.dateCreated!="" && req.body.dateCreated!= undefined )
+                        //            user.dateCreated = req.body.dateCreated;
+                        //
+                        //   user.save(function(err,user) {
+                        //       if (err)
+                        //           res.status(404).json({message: 'Error happened!', data: err});
+                        //       else
+                        //             res.status(200).json({message: 'User updated!', data:user});
+                        //   });
                 });
 
 
