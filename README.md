@@ -1,4 +1,4 @@
-# Demo server code for MP3
+# Server code for Task Management system
 You should be able to do
 `npm install` and `nodemon server.js`
 
